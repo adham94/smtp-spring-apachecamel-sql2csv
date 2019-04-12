@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans profile="default" xmlns="http://www.springframework.org/schema/beans"
+	xmlns:camel="http://camel.apache.org/schema/spring" xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:util="http://www.springframework.org/schema/util" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="
+			http://www.springframework.org/schema/beans
+			http://www.springframework.org/schema/beans/spring-beans.xsd
+			http://camel.apache.org/schema/spring
+			http://camel.apache.org/schema/spring/camel-spring.xsd
+			http://www.springframework.org/schema/context
+			http://www.springframework.org/schema/context/spring-context.xsd
+			http://www.springframework.org/schema/util
+			http://www.springframework.org/schema/util/spring-util.xsd">
+
+	<context:component-scan base-package="com.tmim.sba.extractcsi.service" />
+
+	<!-- https://stackoverflow.com/questions/11415711/programmatic-access-to-properties-created-by-property-placeholder -->
+	<util:properties id="appProperties" location="classpath:spring-contextprops-dir/appcontext-production.properties" />
+	<context:property-placeholder properties-ref="appProperties" />
+
+	<!-- https://examples.javacodegeeks.com/enterprise-java/apache-camel/apache-camel-timer-example/ -->
+	<bean id="dataSource"   class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+		<property name="driverClassName" value="${APP.JDBC.DRIVER_CLASS_NAME}" />
+		<property name="url" value="${APP.JDBC.CONNECTION_STR}" />
+		<property name="username" value="${APP.JDBC.USERNAME}" />
+		<property name="password" value="${APP.JDBC.PASSWORD}" />
+	</bean>
+
+	<bean id="emailAttachmentProcessor" class="com.tmim.sba.extractcsi.processor.EmailAttachmentProcessor" />
+
+	<camel:camelContext id="camelContext">
+		<!-- https://stackoverflow.com/questions/39193907/cant-save-sql-output-to-a-file-in-apache-camel -->
+		<camel:propertyPlaceholder id="camelAppProperties" location="classpath:spring-contextprops-dir/appcontext-production.properties" />
+		<camel:route id="ROUTE_FOR_CSI_REPORT_CREATION">
+			<camel:from uri="timer://run1?repeatCount=1" />
+			<camel:setHeader headerName="csvFilename">
+				<camel:method ref="camelExpressionService" method="getCsvFilename" />
+			</camel:setHeader>
+			<camel:log message="\t[ IN] EXECUTE SQL\t:{{APP.CAMEL_CONTEXT.ROUTE1_SQL}}"></camel:log>
+			<camel:setBody>
+				<camel:simple>${properties:APP.CAMEL_CONTEXT.ROUTE1_SQL}</camel:simple>
+			</camel:setBody>
+			<camel:to uri="jdbc:dataSource" />
+			<camel:marshal>
+				<camel:csv delimiter="|" />
+			</camel:marshal>
+			<camel:to uri="{{APP.CSV_OUTPUT_DIR_URI}}?fileName=${header.csvFilename}" />
+			<camel:log message="\t[OUT] CSV SAVED\t\t:Dir({{APP.CSV_OUTPUT_DIR_URI}}), Filename(${header.csvFilename})" />
+		</camel:route>
+		<!-- https://github.com/sigreen/camel-smtp-example/blob/master/src/main/resources/META-INF/spring/camel-context.xml -->
+		<camel:route id="ROUTE_FOR_EMAILING_CSI_REPORT">
+			<camel:from uri="{{APP.CSV_OUTPUT_DIR_URI}}?fileName=${header.csvFilename}" />
+			<camel:setHeader headerName="csvFilename">
+				<camel:method ref="camelExpressionService" method="getCsvFilename" />
+				<!-- <camel:method ref="filenameGroovyExpr"></camel:method> -->
+			</camel:setHeader>
+			<camel:log message="\t[ IN] GET REPORT\t:Dir({{APP.CSV_OUTPUT_DIR_URI}}), Filename(${header.csvFilename})"></camel:log>
+			<camel:setHeader headerName="from">
+				<camel:simple>{{APP.CAMEL_CONTEXT.ROUTE2_MAIL_FROM}}</camel:simple>
+			</camel:setHeader>
+
+			<camel:setHeader headerName="email">
+			<camel:method ref="emailService" method="getEmail" />
+			</camel:setHeader>
+			<camel:setHeader headerName="to">
+				<camel:simple>${header.email}</camel:simple>
+			</camel:setHeader>
+
+			<camel:setHeader headerName="emailCC">
+			<camel:method ref="emailService" method="getCCEmail" />
+			</camel:setHeader>
+			<camel:setHeader headerName="cc">
+				<camel:simple>${header.emailCC}</camel:simple>
+			</camel:setHeader>
+
+			<camel:setHeader headerName="subject">
+				<camel:simple>{{APP.CAMEL_CONTEXT.ROUTE2_MAIL_SUBJECT}}${date:now:yyyyMMdd}</camel:simple>
+			</camel:setHeader>
+			<camel:setHeader headerName="contentType">
+				<camel:constant>text/plain;charset=UTF-8</camel:constant>
+			</camel:setHeader>
+			<camel:process ref="emailAttachmentProcessor"></camel:process>
+			<camel:to uri="{{APP.CAMEL_CONTEXT.ROUTE2_MAIL_SERVER}}" />
+			<camel:log message="\t[OUT] EMAIL SENT\t:FROM({{APP.CAMEL_CONTEXT.ROUTE2_MAIL_FROM}}), TO(${header.email}), CC(${header.emailCC})" />
+		</camel:route>
+	</camel:camelContext>
+</beans>  

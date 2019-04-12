@@ -1,0 +1,1 @@
+java -jar "D:\springboot\apachecamel-sql2csv_csi-report\jar\SpringBootConsoleAppApacheCamelSQLToCSV.jar"

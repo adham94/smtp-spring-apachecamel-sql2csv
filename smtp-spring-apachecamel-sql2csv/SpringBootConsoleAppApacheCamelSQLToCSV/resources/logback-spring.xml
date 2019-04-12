@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- https://stackoverflow.com/questions/29918323/how-to-configure-rolling-file-appender-within-spring-boots-application-yml -->
+<configuration>
+	<include resource="org/springframework/boot/logging/logback/defaults.xml" />
+	<property name="VAR_CUSTOM_LOGFILE" value="SpringBootConsoleApp" />
+	<property name="LOG_FILE"
+		value="${LOG_FILE:-${LOG_PATH:-${LOG_TEMP:-${java.io.tmpdir:-/tmp}}}/${VAR_CUSTOM_LOGFILE}.log}" />
+	<property name="APPLOG_FILE" value="${LOG_PATH}/${VAR_CUSTOM_LOGFILE}" />
+	<include
+		resource="org/springframework/boot/logging/logback/console-appender.xml" />
+
+	<appender name="APPLOG-ROLLING-FILE"
+		class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<encoder>
+			<pattern>${FILE_LOG_PATTERN}</pattern>
+		</encoder>
+		<file>${APPLOG_FILE}.log</file>
+		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy"><!-- Daily Rollover -->
+			<fileNamePattern>${APPLOG_FILE}-%d{yyyyMMdd}.log</fileNamePattern>
+		</rollingPolicy>
+	</appender>
+
+	<!-- <logger name="com.tmim" level="INFO" additivity="false"> <appender-ref 
+		ref="APPLOG-ROLLING-FILE" /> </logger> -->
+
+	<root level="INFO">
+		<appender-ref ref="CONSOLE" />
+		<appender-ref ref="APPLOG-ROLLING-FILE" />
+	</root>
+</configuration>
