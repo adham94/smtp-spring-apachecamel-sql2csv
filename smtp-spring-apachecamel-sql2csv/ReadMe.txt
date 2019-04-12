@@ -23,13 +23,17 @@ Prerequisites:
 1. Set JAVA_HOME and ANT_HOME in system variable.
 Note: Download and Install the JAVA and ANT if not exists.
 
-2. Open the command prompt and run as administrator. Type cd to <Drive>\ SpringBootConsoleAppApacheCamelSQLToCSV , and run the following command > ant distribute .
+2. Open the command prompt and run as administrator. Go to <Drive>\ SpringBootConsoleAppApacheCamelSQLToCSV , and run the following command > ant distribute .
 
 3. *JAR file created.
 
-4. Edit and execute the query to DB to create email table.
+4. Execute the query to DB to create email table.
 
 5. Edit the .bat file
 Note: <Drive>\springboot\apachecamel-sql2csv_csi-report\jar\SpringBootConsoleAppApacheCamelSQLToCSV.jar
 
-6. Run the jar file with batch file and verify the log file.
+6. Run the batch file to run the jar file.
+
+7. Verify the log file.
+
+
