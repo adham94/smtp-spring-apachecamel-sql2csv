@@ -6,15 +6,15 @@ Send email with attached csv file using Spring / Camel Boot / JDBC connection
 
 Prerequisites:
 
-1. Update create_table_email.sql with your To email addresses.
+1. Set To email addresses from create_table_email.sql.
 
 2. Set JDBC connection resources\spring-contextprops-dir\appcontext-production.properties .
 
-3. Set From email addresses resources\spring-contextprops-dir\appcontext-production.properties (in APP.CAMEL_CONTEXT.ROUTE2_MAIL_FROM=).
+3. Set From email addresses resources\spring-contextprops-dir\appcontext-production.properties (APP.CAMEL_CONTEXT.ROUTE2_MAIL_FROM=).
 
-4. Set MAIL_SERVER resources\spring-contextprops-dir\appcontext-production.properties (in APP.CAMEL_CONTEXT.ROUTE2_MAIL_SERVER=).
+4. Set MAIL_SERVER resources\spring-contextprops-dir\appcontext-production.properties (APP.CAMEL_CONTEXT.ROUTE2_MAIL_SERVER=).
 
-5. Using SQL SELECT Statement to get the record to import in csv file (in appcontext-production.properties (APP.CAMEL_CONTEXT.ROUTE1_SQL=)).
+5. Use SQL SELECT Statement to get the record to import in csv file (in appcontext-production.properties (APP.CAMEL_CONTEXT.ROUTE1_SQL=)).
 
 
 
